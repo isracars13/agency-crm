@@ -4,18 +4,18 @@ import { useEvents  } from '../hooks/useEvents'
 import Modal     from '../components/Modal'
 import EventForm from '../components/EventForm'
 import { ChevronLeft, ChevronRight, Plus, Loader2 } from 'lucide-react'
-import { MONTHS_HE, DAYS_HE, STATUSES } from '../utils/constants'
+import { MONTHS_RU, DAYS_RU, STATUSES } from '../utils/constants'
 
 const STATUS_BG = {
-  lead:        'bg-blue-500',
-  negotiation: 'bg-orange-500',
-  active:      'bg-green-500',
-  cancelled:   'bg-red-400',
+  lead:        'bg-blue-600',
+  negotiation: 'bg-orange-600',
+  active:      'bg-green-600',
+  cancelled:   'bg-red-600',
 }
 
 export default function CalendarPage() {
-  const { clients, loading: lc }                        = useClients()
-  const { events, loading: le, addEvent, updateEvent, deleteEvent } = useEvents()
+  const { clients, loading: lc }                                      = useClients()
+  const { events, loading: le, addEvent, updateEvent, deleteEvent }   = useEvents()
 
   const [cursor,  setCursor]  = useState(new Date())
   const [modal,   setModal]   = useState(null)
@@ -50,8 +50,8 @@ export default function CalendarPage() {
 
   const today   = new Date()
   const isToday = d => d === today.getDate() && month === today.getMonth() && year === today.getFullYear()
-  function pad2(n)  { return String(n).padStart(2, '0') }
-  function dStr(d)  { return `${year}-${pad2(month + 1)}-${pad2(d)}` }
+  const pad2    = n => String(n).padStart(2, '0')
+  const dStr    = d => `${year}-${pad2(month + 1)}-${pad2(d)}`
 
   function openDay(d) { setSelDate(dStr(d)); setEditing(null); setModal('form') }
   function openEv(ev) { setEditing(ev); setSelDate(ev.date); setModal('form') }
@@ -69,41 +69,41 @@ export default function CalendarPage() {
   async function del(id) { await deleteEvent(id); close() }
 
   if (lc || le) return (
-    <div className="flex items-center justify-center h-full text-gray-400">
+    <div className="flex items-center justify-center h-full text-gray-500">
       <Loader2 size={28} className="animate-spin" />
     </div>
   )
 
   return (
-    <div className="p-5 md:p-6 space-y-5 h-full flex flex-col" dir="rtl">
+    <div className="p-5 md:p-6 space-y-5 h-full flex flex-col">
       <div className="flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800">לוח שנה</h1>
-          <p className="text-sm text-gray-400 mt-0.5">{events.length} אירועים בסך הכל</p>
+          <h1 className="text-2xl font-bold text-gray-100">Календарь</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{events.length} событий всего</p>
         </div>
         <button onClick={openNew}
           className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-semibold transition-colors shadow-sm flex-shrink-0">
           <Plus size={17} />
-          הוסף אירוע
+          Добавить
         </button>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 flex-1 flex flex-col overflow-hidden">
-        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+      <div className="bg-gray-800 rounded-2xl border border-gray-700 flex-1 flex flex-col overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-700">
           <button onClick={() => setCursor(new Date(year, month - 1, 1))}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <ChevronRight size={18} className="text-gray-500" />
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+            <ChevronLeft size={18} className="text-gray-400" />
           </button>
-          <h2 className="font-bold text-gray-800 text-lg">{MONTHS_HE[month]} {year}</h2>
+          <h2 className="font-bold text-gray-100 text-lg">{MONTHS_RU[month]} {year}</h2>
           <button onClick={() => setCursor(new Date(year, month + 1, 1))}
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-            <ChevronLeft size={18} className="text-gray-500" />
+            className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+            <ChevronRight size={18} className="text-gray-400" />
           </button>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-gray-50">
-          {DAYS_HE.map(d => (
-            <div key={d} className="py-2 text-center text-xs font-semibold text-gray-400">{d}</div>
+        <div className="grid grid-cols-7 border-b border-gray-700">
+          {DAYS_RU.map(d => (
+            <div key={d} className="py-2 text-center text-xs font-semibold text-gray-600">{d}</div>
           ))}
         </div>
 
@@ -113,22 +113,22 @@ export default function CalendarPage() {
             return (
               <div key={i}
                 onClick={() => day && openDay(day)}
-                className={`border-b border-l border-gray-50 p-1.5 overflow-hidden ${
-                  day ? 'cursor-pointer hover:bg-blue-50/40 transition-colors' : 'bg-gray-50/30'
+                className={`border-b border-r border-gray-700/50 p-1.5 overflow-hidden ${
+                  day ? 'cursor-pointer hover:bg-gray-700/40 transition-colors' : 'bg-gray-900/30'
                 }`}
                 style={{ minHeight: 64 }}
               >
                 {day && (
                   <>
                     <span className={`inline-flex items-center justify-center w-7 h-7 rounded-full text-sm font-medium ${
-                      isToday(day) ? 'bg-blue-600 text-white font-bold' : 'text-gray-600'
+                      isToday(day) ? 'bg-blue-600 text-white font-bold' : 'text-gray-400'
                     }`}>
                       {day}
                     </span>
                     <div className="mt-0.5 space-y-0.5">
                       {dayEvs.slice(0, 3).map(ev => {
                         const cl = clients.find(c => c.id === ev.clientId)
-                        const bg = cl ? (STATUS_BG[cl.status] || 'bg-blue-500') : 'bg-blue-500'
+                        const bg = cl ? (STATUS_BG[cl.status] || 'bg-blue-600') : 'bg-blue-600'
                         return (
                           <div key={ev.id}
                             onClick={e => { e.stopPropagation(); openEv(ev) }}
@@ -138,7 +138,7 @@ export default function CalendarPage() {
                           </div>
                         )
                       })}
-                      {dayEvs.length > 3 && <p className="text-[10px] text-gray-400 px-1">+{dayEvs.length - 3}</p>}
+                      {dayEvs.length > 3 && <p className="text-[10px] text-gray-600 px-1">+{dayEvs.length - 3}</p>}
                     </div>
                   </>
                 )}
@@ -148,7 +148,7 @@ export default function CalendarPage() {
         </div>
       </div>
 
-      <Modal isOpen={modal === 'form'} onClose={close} title={editing ? 'עריכת אירוע' : 'הוספת אירוע'}>
+      <Modal isOpen={modal === 'form'} onClose={close} title={editing ? 'Редактировать событие' : 'Добавить событие'}>
         <EventForm
           event={editing} clients={clients} initialDate={selDate}
           onSave={save} onDelete={del} onCancel={close} saving={saving}

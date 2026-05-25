@@ -3,10 +3,10 @@ import { LayoutDashboard, Users, Map, Calendar, Globe, LogOut } from 'lucide-rea
 import { useAuth } from '../context/AuthContext'
 
 const NAV = [
-  { to: '/',         icon: LayoutDashboard, label: 'דשבורד'   },
-  { to: '/clients',  icon: Users,           label: 'לקוחות'   },
-  { to: '/map',      icon: Map,             label: 'מפה'       },
-  { to: '/calendar', icon: Calendar,        label: 'לוח שנה'  },
+  { to: '/',         icon: LayoutDashboard, label: 'Дашборд'  },
+  { to: '/clients',  icon: Users,           label: 'Клиенты'  },
+  { to: '/map',      icon: Map,             label: 'Карта'    },
+  { to: '/calendar', icon: Calendar,        label: 'Календарь'},
 ]
 
 export default function Layout({ children }) {
@@ -14,18 +14,18 @@ export default function Layout({ children }) {
   const email = session?.user?.email || ''
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden" dir="rtl">
+    <div className="flex h-screen bg-gray-900 overflow-hidden">
 
       {/* Sidebar — desktop */}
-      <aside className="hidden md:flex w-60 bg-white border-l border-gray-100 flex-col flex-shrink-0 shadow-sm">
-        <div className="p-5 border-b border-gray-100">
+      <aside className="hidden md:flex w-60 bg-gray-800 border-r border-gray-700 flex-col flex-shrink-0">
+        <div className="p-5 border-b border-gray-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-sm">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-500 rounded-xl flex items-center justify-center shadow-lg">
               <Globe size={18} className="text-white" />
             </div>
             <div>
-              <p className="font-bold text-gray-800 text-sm leading-tight">סוכנות אינטרנט</p>
-              <p className="text-xs text-gray-400">אשדוד</p>
+              <p className="font-bold text-gray-100 text-sm leading-tight">Веб Агентство</p>
+              <p className="text-xs text-gray-500">Ашдод</p>
             </div>
           </div>
         </div>
@@ -36,8 +36,8 @@ export default function Layout({ children }) {
               className={({ isActive }) =>
                 `flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                   isActive
-                    ? 'bg-blue-50 text-blue-600'
-                    : 'text-gray-500 hover:bg-gray-50 hover:text-gray-700'
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-400 hover:bg-gray-700 hover:text-gray-100'
                 }`
               }>
               <Icon size={17} />
@@ -46,18 +46,17 @@ export default function Layout({ children }) {
           ))}
         </nav>
 
-        {/* User + logout */}
-        <div className="p-4 border-t border-gray-100">
+        <div className="p-4 border-t border-gray-700">
           <div className="flex items-center gap-2 mb-3">
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-              <span className="text-xs font-bold text-blue-600">{email[0]?.toUpperCase() || '?'}</span>
+            <div className="w-7 h-7 rounded-full bg-blue-900 flex items-center justify-center flex-shrink-0">
+              <span className="text-xs font-bold text-blue-400">{email[0]?.toUpperCase() || '?'}</span>
             </div>
             <p className="text-xs text-gray-500 truncate flex-1">{email}</p>
           </div>
           <button onClick={signOut}
-            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors border border-gray-100">
+            className="w-full flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-medium text-gray-500 hover:bg-red-900/40 hover:text-red-400 transition-colors border border-gray-700">
             <LogOut size={14} />
-            יציאה
+            Выйти
           </button>
         </div>
       </aside>
@@ -68,12 +67,12 @@ export default function Layout({ children }) {
       </main>
 
       {/* Bottom nav — mobile */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 flex z-40">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 bg-gray-800 border-t border-gray-700 flex z-40">
         {NAV.map(({ to, icon: Icon, label }) => (
           <NavLink key={to} to={to} end={to === '/'}
             className={({ isActive }) =>
               `flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium transition-colors ${
-                isActive ? 'text-blue-600' : 'text-gray-400'
+                isActive ? 'text-blue-400' : 'text-gray-500'
               }`
             }>
             <Icon size={20} />
@@ -81,9 +80,9 @@ export default function Layout({ children }) {
           </NavLink>
         ))}
         <button onClick={signOut}
-          className="flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium text-gray-400">
+          className="flex-1 flex flex-col items-center gap-0.5 py-2.5 text-xs font-medium text-gray-500">
           <LogOut size={20} />
-          <span>יציאה</span>
+          <span>Выйти</span>
         </button>
       </nav>
     </div>

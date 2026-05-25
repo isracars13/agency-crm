@@ -1,67 +1,110 @@
 import { useMemo } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet'
+import { MapContainer, TileLayer, CircleMarker, Marker, Popup, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import { useClients } from '../hooks/useClients'
 import { NEIGHBORHOOD_COORDS, STATUS_MAP_COLORS, STATUSES } from '../utils/constants'
 import { formatCurrency } from '../utils/helpers'
 import { Loader2 } from 'lucide-react'
 
+function createPinIcon(color) {
+  return L.divIcon({
+    className: '',
+    html: `<div style="
+      width:22px;height:22px;
+      background:${color};
+      border:2.5px solid rgba(255,255,255,0.9);
+      border-radius:50%;
+      box-shadow:0 2px 8px rgba(0,0,0,0.5);
+    "></div>`,
+    iconSize: [22, 22],
+    iconAnchor: [11, 11],
+  })
+}
+
 export default function MapPage() {
   const { clients, loading } = useClients()
 
   const markers = useMemo(() => clients.map((c, i) => {
+    const color = STATUS_MAP_COLORS[c.status] || '#3B82F6'
+    if (c.lat && c.lng) {
+      return { client: c, lat: c.lat, lng: c.lng, color, exact: true }
+    }
     const base = NEIGHBORHOOD_COORDS[c.neighborhood] || [31.812, 34.655]
     return {
       client: c,
-      lat:   base[0] + Math.sin(i * 1.9) * 0.0018,
-      lng:   base[1] + Math.cos(i * 2.5) * 0.0018,
-      color: STATUS_MAP_COLORS[c.status] || '#3B82F6',
+      lat: base[0] + Math.sin(i * 1.9) * 0.0018,
+      lng: base[1] + Math.cos(i * 2.5) * 0.0018,
+      color,
+      exact: false,
     }
   }), [clients])
 
   if (loading) return (
-    <div className="flex items-center justify-center h-full text-gray-400">
+    <div className="flex items-center justify-center h-full text-gray-500">
       <Loader2 size={28} className="animate-spin" />
     </div>
   )
 
   return (
-    <div className="h-full flex flex-col" dir="rtl">
-      <div className="p-5 md:p-6 bg-white border-b border-gray-100 flex-shrink-0">
-        <h1 className="text-2xl font-bold text-gray-800">מפה</h1>
-        <p className="text-sm text-gray-400 mt-0.5">פריסת לקוחות באשדוד — {clients.length} נקודות</p>
+    <div className="h-full flex flex-col bg-gray-900">
+      <div className="p-5 md:p-6 bg-gray-800 border-b border-gray-700 flex-shrink-0">
+        <h1 className="text-2xl font-bold text-gray-100">Карта</h1>
+        <p className="text-sm text-gray-500 mt-0.5">Клиенты в Ашдоде — {clients.length} точек</p>
       </div>
 
-      <div className="px-5 md:px-6 py-3 bg-white border-b border-gray-100 flex gap-5 flex-wrap flex-shrink-0">
+      <div className="px-5 md:px-6 py-3 bg-gray-800 border-b border-gray-700 flex gap-5 flex-wrap flex-shrink-0">
         {Object.entries(STATUSES).map(([key, cfg]) => (
           <div key={key} className="flex items-center gap-1.5">
             <span className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: STATUS_MAP_COLORS[key] }} />
-            <span className="text-xs text-gray-600">{cfg.label}</span>
+            <span className="text-xs text-gray-400">{cfg.label}</span>
           </div>
         ))}
+        <div className="flex items-center gap-1.5 mr-4">
+          <span className="text-xs text-gray-600">● точный адрес</span>
+          <span className="text-xs text-gray-600">○ район</span>
+        </div>
       </div>
 
-      <div className="flex-1 relative" style={{ direction: 'ltr' }}>
+      <div className="flex-1 relative">
         <MapContainer center={[31.812, 34.655]} zoom={13} style={{ width: '100%', height: '100%' }} scrollWheelZoom>
           <TileLayer
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a>'
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://openstreetmap.org">OpenStreetMap</a> &copy; <a href="https://carto.com">CARTO</a>'
           />
-          {markers.map(({ client, lat, lng, color }) => (
-            <CircleMarker key={client.id} center={[lat, lng]} radius={11}
-              pathOptions={{ color: '#fff', weight: 2.5, fillColor: color, fillOpacity: 1 }}>
+          {markers.map(({ client, lat, lng, color, exact }) => (
+            <CircleMarker
+              key={client.id}
+              center={[lat, lng]}
+              radius={exact ? 12 : 9}
+              pathOptions={{
+                color: exact ? '#fff' : 'rgba(255,255,255,0.5)',
+                weight: exact ? 2.5 : 1.5,
+                fillColor: color,
+                fillOpacity: exact ? 1 : 0.75,
+              }}
+            >
               <Popup>
-                <div dir="rtl" style={{ minWidth: 170, fontFamily: 'inherit' }}>
-                  <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 4 }}>{client.name}</p>
-                  {client.businessName && <p style={{ color: '#555', fontSize: 13, marginBottom: 6 }}>{client.businessName}</p>}
+                <div style={{ minWidth: 180, fontFamily: 'inherit' }}>
+                  <p style={{ fontWeight: 700, fontSize: 15, marginBottom: 4, color: '#f3f4f6' }}>{client.name}</p>
+                  {client.businessName && (
+                    <p style={{ color: '#9ca3af', fontSize: 13, marginBottom: 6 }}>{client.businessName}</p>
+                  )}
                   <p style={{ marginBottom: 6 }}>
-                    <span style={{ background: color + '22', color, padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
+                    <span style={{ background: color + '33', color, padding: '2px 10px', borderRadius: 20, fontSize: 12, fontWeight: 600 }}>
                       {STATUSES[client.status]?.label}
                     </span>
                   </p>
-                  {client.phone && <p style={{ fontSize: 13, color: '#444', marginBottom: 3 }} dir="ltr">{client.phone}</p>}
-                  <p style={{ fontSize: 12, color: '#999', marginBottom: 3 }}>{client.neighborhood}, אשדוד</p>
-                  <p style={{ fontSize: 13, fontWeight: 600, color: '#1d4ed8' }}>{formatCurrency(client.monthlyPayment)}/חודש</p>
+                  {client.address && (
+                    <p style={{ fontSize: 12, color: '#60a5fa', marginBottom: 4 }}>📍 {client.address}</p>
+                  )}
+                  {client.phone && (
+                    <p style={{ fontSize: 13, color: '#d1d5db', marginBottom: 3 }}>{client.phone}</p>
+                  )}
+                  <p style={{ fontSize: 12, color: '#6b7280' }}>{client.neighborhood}, Ашдод</p>
+                  <p style={{ fontSize: 13, fontWeight: 600, color: '#60a5fa', marginTop: 4 }}>
+                    {formatCurrency(client.monthlyPayment)}/мес
+                  </p>
                 </div>
               </Popup>
             </CircleMarker>
@@ -70,9 +113,9 @@ export default function MapPage() {
 
         {clients.length === 0 && (
           <div className="absolute inset-0 flex items-center justify-center z-[999] pointer-events-none">
-            <div className="bg-white/95 backdrop-blur rounded-2xl px-6 py-4 shadow-lg text-center">
-              <p className="text-gray-600 font-medium">אין לקוחות להצגה</p>
-              <p className="text-gray-400 text-sm mt-1">הוסף לקוחות כדי לראות אותם על המפה</p>
+            <div className="bg-gray-800/95 border border-gray-700 backdrop-blur rounded-2xl px-6 py-4 shadow-lg text-center">
+              <p className="text-gray-300 font-medium">Нет клиентов для отображения</p>
+              <p className="text-gray-500 text-sm mt-1">Добавьте клиентов с адресами</p>
             </div>
           </div>
         )}
