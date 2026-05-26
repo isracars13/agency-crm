@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Globe, Loader2, Eye, EyeOff } from 'lucide-react'
 
-const MAX_ATTEMPTS = 5
+const MAX_ATTEMPTS = 3
 const LOCKOUT_MS   = 15 * 60 * 1000
 
 export default function Login() {
@@ -46,7 +46,7 @@ export default function Login() {
         setLockedUntil(Date.now() + LOCKOUT_MS)
         setError('Аккаунт заблокирован на 15 минут из-за множества неудачных попыток')
       } else {
-        setError(`Неверный email или пароль (попытка ${next}/${MAX_ATTEMPTS})`)
+        setError(`Неверный email или пароль (попытка ${next} из ${MAX_ATTEMPTS})`)
       }
     }
   }
