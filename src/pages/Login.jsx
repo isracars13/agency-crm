@@ -2,6 +2,9 @@ import { useState } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Globe, Loader2, Eye, EyeOff } from 'lucide-react'
 
+const MAX_ATTEMPTS = 5
+const LOCKOUT_MS   = 15 * 60 * 1000
+
 export default function Login() {
   const { signIn } = useAuth()
   const [email,    setEmail]    = useState('')
@@ -9,14 +12,43 @@ export default function Login() {
   const [showPwd,  setShowPwd]  = useState(false)
   const [loading,  setLoading]  = useState(false)
   const [error,    setError]    = useState('')
+  const [attempts, setAttempts] = useState(0)
+  const [lockedUntil, setLockedUntil] = useState(null)
+
+  function validate() {
+    if (!email.trim()) return 'Введите email'
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) return 'Неверный формат email'
+    if (password.length < 6) return 'Пароль должен быть не менее 6 символов'
+    return null
+  }
 
   async function submit(e) {
     e.preventDefault()
     setError('')
+
+    if (lockedUntil && Date.now() < lockedUntil) {
+      const mins = Math.ceil((lockedUntil - Date.now()) / 60000)
+      setError(`Слишком много попыток. Подождите ${mins} мин.`)
+      return
+    }
+
+    const validErr = validate()
+    if (validErr) { setError(validErr); return }
+
     setLoading(true)
     const err = await signIn(email.trim(), password)
-    if (err) setError('Неверный email или пароль')
     setLoading(false)
+
+    if (err) {
+      const next = attempts + 1
+      setAttempts(next)
+      if (next >= MAX_ATTEMPTS) {
+        setLockedUntil(Date.now() + LOCKOUT_MS)
+        setError('Аккаунт заблокирован на 15 минут из-за множества неудачных попыток')
+      } else {
+        setError(`Неверный email или пароль (попытка ${next}/${MAX_ATTEMPTS})`)
+      }
+    }
   }
 
   return (
@@ -54,10 +86,10 @@ export default function Login() {
           </div>
 
           {error && (
-            <p className="text-red-400 text-sm text-center bg-red-900/30 border border-red-800 rounded-lg py-2">{error}</p>
+            <p className="text-red-400 text-sm text-center bg-red-900/30 border border-red-800 rounded-lg py-2 px-3">{error}</p>
           )}
 
-          <button type="submit" disabled={loading}
+          <button type="submit" disabled={loading || (lockedUntil && Date.now() < lockedUntil)}
             className="w-full bg-blue-600 hover:bg-blue-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2">
             {loading ? <Loader2 size={18} className="animate-spin" /> : 'Войти'}
           </button>

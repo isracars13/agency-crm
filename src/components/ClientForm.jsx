@@ -9,16 +9,27 @@ const EMPTY = {
 const INPUT = 'w-full bg-gray-700 border border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-100 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500'
 
 export default function ClientForm({ client, onSave, onCancel, saving }) {
-  const [form, setForm] = useState(client ? { ...client } : { ...EMPTY })
+  const [form,   setForm]   = useState(client ? { ...client } : { ...EMPTY })
+  const [errors, setErrors] = useState({})
 
   function set(e) {
     const { name, value } = e.target
     setForm(p => ({ ...p, [name]: value }))
+    setErrors(p => ({ ...p, [name]: '' }))
+  }
+
+  function validate() {
+    const e = {}
+    if (!form.name.trim()) e.name = 'Обязательное поле'
+    if (form.phone && !/^[\d\s\-+()]{7,15}$/.test(form.phone)) e.phone = 'Неверный формат телефона'
+    if (form.monthlyPayment && Number(form.monthlyPayment) < 0) e.monthlyPayment = 'Не может быть отрицательным'
+    return e
   }
 
   function submit(e) {
     e.preventDefault()
-    if (!form.name.trim()) return
+    const errs = validate()
+    if (Object.keys(errs).length) { setErrors(errs); return }
     onSave({ ...form, monthlyPayment: Number(form.monthlyPayment) || 0 })
   }
 
@@ -27,7 +38,8 @@ export default function ClientForm({ client, onSave, onCancel, saving }) {
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="block text-xs font-semibold text-gray-400 mb-1">Имя *</label>
-          <input name="name" value={form.name} onChange={set} required className={INPUT} placeholder="Иван Иванов" />
+          <input name="name" value={form.name} onChange={set} className={INPUT} placeholder="Иван Иванов" />
+          {errors.name && <p className="text-red-400 text-xs mt-1">{errors.name}</p>}
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-400 mb-1">Название бизнеса</label>
@@ -39,6 +51,7 @@ export default function ClientForm({ client, onSave, onCancel, saving }) {
         <div>
           <label className="block text-xs font-semibold text-gray-400 mb-1">Телефон</label>
           <input name="phone" value={form.phone} onChange={set} className={INPUT} placeholder="050-0000000" />
+          {errors.phone && <p className="text-red-400 text-xs mt-1">{errors.phone}</p>}
         </div>
         <div>
           <label className="block text-xs font-semibold text-gray-400 mb-1">Район</label>
@@ -68,6 +81,7 @@ export default function ClientForm({ client, onSave, onCancel, saving }) {
           <label className="block text-xs font-semibold text-gray-400 mb-1">Оплата в месяц (₪)</label>
           <input name="monthlyPayment" type="number" min="0" value={form.monthlyPayment} onChange={set}
             className={INPUT} placeholder="1500" />
+          {errors.monthlyPayment && <p className="text-red-400 text-xs mt-1">{errors.monthlyPayment}</p>}
         </div>
       </div>
 
